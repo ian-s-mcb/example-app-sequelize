@@ -3,8 +3,7 @@ const { ValidationError } = require('sequelize')
 
 const models = require('../models')
 
-var router = express.Router();
-
+const router = express.Router();
 // GET /users
 router.get('/', async function(req, res, next) {
   try {
