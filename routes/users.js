@@ -5,18 +5,18 @@ const models = require('../models')
 
 const router = express.Router();
 // GET /users
-router.get('/', async function(req, res, next) {
-  try {
-    const users = await models['User'].findAll()
-    return res.status(200).json(users)
-  } catch(err) {
-    console.log(err)
-    return res.status(500).send('Unable to get all users')
-  }
+router.get('/', function(req, res, next) {
+  models['User']
+    .findAll()
+    .then(users => res.json(users))
+    .catch(err => {
+      console.log(err)
+      return res.status(500).send('Unable to get all users')
+    })
 });
 
 // POST /users/create
-router.post('/create', async function(req, res, next) {
+router.post('/create', function(req, res, next) {
   // Collect parameters
   const params = {
     email: req.body.email,
@@ -26,20 +26,20 @@ router.post('/create', async function(req, res, next) {
   }
 
   // Create record
-  try {
-    const user = await models['User'].create(params)
-    return res.json({ message: `Created user with email: ${params.email}`, user });
-  }
-  catch (err) {
-    if (err instanceof ValidationError) {
-      console.log(err)
-      return res.status(412).send(err.message)
-    }
-    else {
-      console.log(err)
-      return res.status(500).send('Unable to create user')
-    }
-  }
+  models['User']
+    .create(params)
+    .then(user =>
+      res.json({ message: `Created user with email: ${user.email}`})
+    ).catch(err => {
+      if (err instanceof ValidationError) {
+        console.log(err)
+        return res.status(412).send(err.message)
+      }
+      else {
+        console.log(err)
+        return res.status(500).send('Unable to create user')
+      }
+    })
 });
 
 module.exports = router;
