@@ -1,7 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const { UniqueConstraintError, ValidationError } = require('sequelize')
+const bcrypt = require('bcrypt')
 
+const env = process.env.NODE_ENV || 'development';
+const config = require('../config/config.js')[env];
 const models = require('../models')
 
 // GET /users
@@ -28,9 +31,12 @@ router.post('/create', function(req, res, next) {
   // Create record
   models['User']
     .create(params)
-    .then(user =>
+    .then(async user => {
+      // Update password with hash
+      user.password = await bcrypt.hash(user.password, config.salt_rounds)
+      user.save()
       res.json({ message: `Created user with email: ${user.email}`})
-    ).catch(err => {
+    }).catch(err => {
       if (err instanceof UniqueConstraintError) {
         console.log(err)
         return res.status(412).send('An account already exists with that email')
@@ -70,8 +76,9 @@ router.post('/login', (req, res, next) => {
       attributes: ['email', 'password'],
       where: { email: params.email }
     })
-    .then(user => {
-      if (user.password === params.password) {
+    .then(async user => {
+      const match = await bcrypt.compare(params.password, user.password)
+      if (match) {
         req.session.user = user
         return res.json({ message: `Successfully logged in as ${user.email}` })
       }
