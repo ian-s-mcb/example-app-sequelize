@@ -1,9 +1,9 @@
 const express = require('express');
+const router = express.Router();
 const { UniqueConstraintError, ValidationError } = require('sequelize')
 
 const models = require('../models')
 
-const router = express.Router();
 // GET /users
 router.get('/', function(req, res, next) {
   models['User']
