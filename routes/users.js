@@ -46,4 +46,42 @@ router.post('/create', function(req, res, next) {
     })
 });
 
+// POST /users/login
+router.post('/login', (req, res, next) => {
+  // Collect parameters
+  const params = {
+    email: req.body.email,
+    password: req.body.password
+  }
+
+  // Validate parameters
+  const validationCheck = Object.values(params).every(val => val !== undefined)
+  if (!validationCheck) {
+    return res.status(412).send('Missing parameters')
+  }
+
+  models['User']
+    .findOne({
+      attributes: ['email', 'password'],
+      where: { email: params.email }
+    })
+    .then(user => {
+      if (user.password === params.password) {
+        res.json({ message: `Successfully logged in as ${user.email}` })
+      }
+      else {
+        throw new Error('Incorrect login credentials')
+      }
+    }).catch(err => {
+      if (err.message === 'Incorrect login credentials') {
+        console.log(err)
+        return res.status(403).send(err.message)
+      }
+      else {
+        console.log(err)
+        return res.status(500).send('Incorrect login credentials')
+      }
+    })
+})
+
 module.exports = router;
