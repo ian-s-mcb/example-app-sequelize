@@ -1,5 +1,5 @@
 const express = require('express');
-const { ValidationError } = require('sequelize')
+const { UniqueConstraintError, ValidationError } = require('sequelize')
 
 const models = require('../models')
 
@@ -31,7 +31,11 @@ router.post('/create', function(req, res, next) {
     .then(user =>
       res.json({ message: `Created user with email: ${user.email}`})
     ).catch(err => {
-      if (err instanceof ValidationError) {
+      if (err instanceof UniqueConstraintError) {
+        console.log(err)
+        return res.status(412).send('An account already exists with that email')
+      }
+      else if (err instanceof ValidationError) {
         console.log(err)
         return res.status(412).send(err.message)
       }
