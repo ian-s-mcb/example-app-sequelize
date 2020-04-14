@@ -48,6 +48,11 @@ router.post('/create', function(req, res, next) {
 
 // POST /users/login
 router.post('/login', (req, res, next) => {
+  // Check if already logged in
+  if (req.session.user !== undefined) {
+    return res.json({ message: `Already logged in as ${req.session.user.email}` })
+  }
+
   // Collect parameters
   const params = {
     email: req.body.email,
@@ -67,7 +72,8 @@ router.post('/login', (req, res, next) => {
     })
     .then(user => {
       if (user.password === params.password) {
-        res.json({ message: `Successfully logged in as ${user.email}` })
+        req.session.user = user
+        return res.json({ message: `Successfully logged in as ${user.email}` })
       }
       else {
         throw new Error('Incorrect login credentials')
@@ -82,6 +88,23 @@ router.post('/login', (req, res, next) => {
         return res.status(500).send('Incorrect login credentials')
       }
     })
+})
+
+// POST /users/logout
+router.post('/logout', (req, res, next) => {
+  // Check if already logged in
+  if (req.session.user !== undefined) {
+    req.session.destroy(err => {
+      if (err) {
+        console.log(err)
+        return res.status(500).send('Unable to logout')
+      }
+      return res.json({ message: 'You have successfully logged out' })
+    })
+  }
+  else {
+    return res.status(401).send('Already logged out')
+  }
 })
 
 module.exports = router;
