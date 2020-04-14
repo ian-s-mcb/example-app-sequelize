@@ -11,7 +11,7 @@ const models = require('../models')
 router.get('/', function(req, res, next) {
   models['User']
     .findAll()
-    .then(users => res.json(users))
+    .then(users => res.json(users.map(user => user.firstName)))
     .catch(err => {
       console.log(err)
       return res.status(500).send('Unable to get all users')
